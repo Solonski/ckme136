@@ -1,0 +1,738 @@
+
+
+#OPENING DATA
+
+raw_data<- read.csv("bbc-text.csv",header=T)
+df<- raw_data
+
+str(df)
+dim(df$category)
+
+head(df)
+str(df)
+
+#identify missing values
+
+table(is.na(df$category))
+table(is.na(df$text))
+
+prop.table(table(df$category))
+
+
+#~~~~~~~EXPLORATORY ANALYSIS~~~~~~~~~
+
+table(df$category)
+
+barplot(table(df$category))
+
+#counts for each category is about close to each other, no need to balance the categories.
+
+#sentiment analysis
+
+#install.packages("RSentiment")
+library(RSentiment)
+#install.packages("syuzhet")
+library(syuzhet)
+library(ggplot2)
+
+df$text= as.character(df$text)
+d<-get_nrc_sentiment(df$text)
+td<-data.frame(t(d))
+td_new <- data.frame(rowSums(td[1:2225]))
+names(td_new)[1] <- "count"
+td_new <- cbind("sentiment" = rownames(td_new), td_new)
+rownames(td_new) <- NULL
+td_new2<-td_new[1:8,]
+qplot(sentiment, data=td_new2, weight=count, geom="bar",fill=sentiment)+ggtitle("Sentiments BBC Articles")
+
+
+
+#Creating wordcloud for ALL Categories
+
+#install.packages("NLP")
+library(NLP)
+#install.packages("RColorBrewer")
+library(RColorBrewer)
+#install.packages("tm")
+library(tm)
+#install.packages("wordcloud")
+library(wordcloud)
+
+
+docs <- Corpus(VectorSource(t(df$text)))
+#inspect(docs[1:3])
+
+docs <- tm_map(docs, removeNumbers)
+docs <- tm_map(docs, removeWords, stopwords("english"))
+docs <- tm_map(docs, removePunctuation)
+docs <- tm_map(docs, tolower)
+docs <- tm_map(docs, stripWhitespace)
+#inspect(docs[1:3])
+
+dtm <- TermDocumentMatrix(docs)
+#inspect(dtm)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+dftot<-head(d,10)
+dftot
+
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.1, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+
+##Creating word cloud for each category
+
+df.business <- df[df$category == "business",]
+df.entertainment <- df[df$category == "entertainment",]
+df.politics <- df[df$category == "politics",]
+df.sport <- df[df$category == "sport",]
+df.tech <- df[df$category == "tech",]
+
+
+#Wordcloud for Business
+docs.bus <- Corpus(VectorSource(t(df.business$text)))
+#inspect(docs.bus[1:3])
+
+docs.bus <- tm_map(docs.bus, removeNumbers)
+docs.bus <- tm_map(docs.bus, removeWords, stopwords("english"))
+docs.bus <- tm_map(docs.bus, removePunctuation)
+docs.bus <- tm_map(docs.bus, tolower)
+docs.bus <- tm_map(docs.bus, removeWords, c("said","also","however","will","last","just","can"))
+docs.bus <- tm_map(docs.bus, stripWhitespace)
+
+#inspect(docs.bus[1:3])
+
+dtm.bus <- TermDocumentMatrix(docs.bus)
+#inspect(dtm.bus)
+m.bus <- as.matrix(dtm.bus)
+v.bus <- sort(rowSums(m.bus),decreasing=TRUE)
+d.bus <- data.frame(word = names(v.bus),freq=v.bus)
+
+topword.bus<-head(d.bus,10)
+topword.bus
+
+wordcloud(words = d.bus$word, freq = d.bus$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.1, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+#Wordcloud for Entertainment
+docs.ent <- Corpus(VectorSource(t(df.entertainment$text)))
+#inspect(docs.bus[1:3])
+
+docs.ent <- tm_map(docs.ent, removeNumbers)
+docs.ent <- tm_map(docs.ent, removeWords, stopwords("english"))
+docs.ent <- tm_map(docs.ent, removePunctuation)
+docs.ent <- tm_map(docs.ent, tolower)
+docs.ent <- tm_map(docs.ent, removeWords, c("said","also","however","will","last","just","can"))
+docs.ent <- tm_map(docs.ent, stripWhitespace)
+
+#inspect(docs.bus[1:3])
+
+dtm.ent <- TermDocumentMatrix(docs.ent)
+#inspect(dtm.ent)
+m.ent <- as.matrix(dtm.ent)
+v.ent <- sort(rowSums(m.ent),decreasing=TRUE)
+d.ent <- data.frame(word = names(v.ent),freq=v.ent)
+
+topword.ent<-head(d.ent,10)
+topword.ent
+
+wordcloud(words = d.ent$word, freq = d.ent$freq, min.freq = 1,
+          max.words=50, random.order=FALSE, rot.per=0.1, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+
+
+#Wordcloud for Politics
+docs.pol <- Corpus(VectorSource(t(df.politics$text)))
+#inspect(docs.pol[1:3])
+
+docs.pol <- tm_map(docs.pol, removeNumbers)
+docs.pol <- tm_map(docs.pol, removeWords, stopwords("english"))
+docs.pol <- tm_map(docs.pol, removePunctuation)
+docs.pol <- tm_map(docs.pol, tolower)
+docs.pol <- tm_map(docs.pol, removeWords, c("said","also","however","will","last","just","can"))
+docs.pol <- tm_map(docs.pol, stripWhitespace)
+
+#inspect(docs.pol[1:3])
+
+dtm.pol <- TermDocumentMatrix(docs.pol)
+#inspect(dtm.ent)
+m.pol <- as.matrix(dtm.pol)
+v.pol <- sort(rowSums(m.pol),decreasing=TRUE)
+d.pol <- data.frame(word = names(v.pol),freq=v.pol)
+
+topword.pol<-head(d.pol,10)
+topword.pol
+
+wordcloud(words = d.pol$word, freq = d.pol$freq, min.freq = 1,
+          max.words=50, scale=c(3,0.2),random.order=FALSE, rot.per=0.1, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+
+#Wordcloud for Sports
+docs.spo <- Corpus(VectorSource(t(df.sport$text)))
+#inspect(docs.spo[1:3])
+
+docs.spo <- tm_map(docs.spo, removeNumbers)
+docs.spo <- tm_map(docs.spo, removeWords, stopwords("english"))
+docs.spo <- tm_map(docs.spo, removePunctuation)
+docs.spo <- tm_map(docs.spo, tolower)
+docs.spo <- tm_map(docs.spo, removeWords, c("said","also","however","will","last","just","can"))
+docs.spo <- tm_map(docs.spo, stripWhitespace)
+
+#inspect(docs.spo[1:3])
+
+dtm.spo <- TermDocumentMatrix(docs.spo)
+#inspect(dtm.ent)
+m.spo <- as.matrix(dtm.spo)
+v.spo <- sort(rowSums(m.spo),decreasing=TRUE)
+d.spo <- data.frame(word = names(v.spo),freq=v.spo)
+
+topword.spo<-head(d.spo,10)
+topword.spo
+
+wordcloud(words = d.spo$word, freq = d.spo$freq, min.freq = 1,
+          max.words=40,scale=c(3,0.2), random.order=FALSE, rot.per=0.1, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+#Wordcloud for Technology
+docs.tec <- Corpus(VectorSource(t(df.tech$text)))
+#inspect(docs.tec[1:3])
+
+docs.tec <- tm_map(docs.tec, removeNumbers)
+docs.tec <- tm_map(docs.tec, removeWords, stopwords("english"))
+docs.tec <- tm_map(docs.tec, removePunctuation)
+docs.tec <- tm_map(docs.tec, tolower)
+docs.tec <- tm_map(docs.tec, removeWords, c("said","also","however","will","last","just","can"))
+docs.tec <- tm_map(docs.tec, stripWhitespace)
+
+#inspect(docs.pol[1:3])
+
+dtm.tec <- TermDocumentMatrix(docs.tec)
+#inspect(dtm.tec)
+m.tec <- as.matrix(dtm.tec)
+v.tec <- sort(rowSums(m.tec),decreasing=TRUE)
+d.tec <- data.frame(word = names(v.tec),freq=v.tec)
+
+topword.tec<-head(d.tec,10)
+topword.tec
+
+wordcloud(words = d.tec$word, freq = d.tec$freq, min.freq = 1,
+          max.words=40,scale=c(4,0.3), random.order=FALSE, rot.per=0.1, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+
+
+
+#~~~~~~~~~~PREDICTIVE MODELLING ~~~~~~~~~~~~~~~~
+
+
+#split dataset, corpus, dtm to training and testing set 70/30 stratified split
+
+
+#install.packages("caret")
+library(caret)
+library(tm)
+
+#Corpus and DTM for df dataframe
+df.corpus <- Corpus(VectorSource(df$text))
+inspect(df.corpus[1:1])
+df.corpus<-tm_map(df.corpus,tolower)
+df.corpus<-tm_map(df.corpus,removeNumbers)
+df.corpus<-tm_map(df.corpus,removePunctuation)
+df.corpus<-tm_map(df.corpus,removeWords,stopwords("english"))
+df.corpus<-tm_map(df.corpus,stripWhitespace)
+#inspect(df.corpus[1:1])
+
+
+#document term matrix for df
+df.dtm <- DocumentTermMatrix(df.corpus)
+inspect(df.dtm[1:2,1:10])
+
+
+
+#Partitin df to 70/30 split (Train/Test)
+set.seed(1)
+index =  createDataPartition(df$category, times=1, p=0.7, list = FALSE)
+index[1:10]
+
+#DATASET for training and testing
+df.train <- df[index,]
+df.test <- df[-index,]
+dim(df.train)
+dim(df.test)
+dim(df)
+prop.table(table(df$category))
+
+#***************************
+
+#check proportion for train and test
+prop.table(table(df.train$category))
+prop.table(table(df.test$category))
+
+
+
+
+#    Naive Bayes  
+
+#install.packages("tm")
+library (tm)
+
+# Create Corpus and DTM for training and testing sets  
+#Corpus for df.train
+df.train.corpus <- Corpus(VectorSource(df.train$text))
+inspect(df.train.corpus[1:1])
+df.train.corpus<-tm_map(df.train.corpus,tolower)
+df.train.corpus<-tm_map(df.train.corpus,removeNumbers)
+df.train.corpus<-tm_map(df.train.corpus,removePunctuation)
+df.train.corpus<-tm_map(df.train.corpus,removeWords,stopwords("english"))
+df.train.corpus<-tm_map(df.train.corpus,stripWhitespace)
+inspect(df.train.corpus[1:1])
+
+
+#document term matrix for df.train
+df.train.dtm <- DocumentTermMatrix(df.train.corpus)
+inspect(df.train.dtm[1:2,1:10])
+
+
+#Corpus for df.test
+df.test.corpus <- Corpus(VectorSource(df.test$text))
+inspect(df.test.corpus[1:1])
+df.test.corpus<-tm_map(df.test.corpus,tolower)
+df.test.corpus<-tm_map(df.test.corpus,removeNumbers)
+df.test.corpus<-tm_map(df.test.corpus,removePunctuation)
+df.test.corpus<-tm_map(df.test.corpus,removeWords,stopwords("english"))
+df.test.corpus<-tm_map(df.test.corpus,stripWhitespace)
+inspect(df.test.corpus[1:1])
+
+
+#document term matrix for df.train
+df.test.dtm <- DocumentTermMatrix(df.test.corpus)
+inspect(df.dtm[1:2,1:10])
+
+
+
+
+#Find Frequent Terms
+frequent_words <- findFreqTerms(x=df.train.dtm,lowfreq =  10)
+str(frequent_words)
+
+
+#Reduce document term matrix with only frequent words
+df.train.dtm.mod <- DocumentTermMatrix(df.train.corpus, control=list(dictionary=frequent_words))
+str(df.train.dtm.mod)
+
+df.test.dtm.mod <- DocumentTermMatrix(df.test.corpus, control=list(dictionary=frequent_words))
+str(df.test.dtm.mod)
+
+
+
+
+#Function to convert word frequncies if 1 or greater to YES(presence) or zero to NO (absence)
+yes_no <- function(x) {
+  y <- ifelse(x>0, 1, 0)
+  y <- factor (y, levels= c(0, 1), labels = c("No","Yes"))
+  y
+} 
+
+
+#Convert document term matrices to Yes or NO(categorical) to be used in Naive Bayes Classifier 
+df.train.dtm.mod.yn <- apply(df.train.dtm.mod,2,yes_no)
+str(df.train.dtm.mod.yn)
+dim(df.train.dtm.mod.yn)
+
+df.test.dtm.mod.yn <- apply(df.test.dtm.mod, 2, yes_no)
+str(df.test.dtm.mod.yn)
+dim(df.test.dtm.mod.yn)
+
+#install naiveBayes algorithm classifier
+#install.packages("e1071")
+library(e1071)
+
+model_nb <- naiveBayes(df.train.dtm.mod.yn,df.train$category, laplace = 1)
+class(model_nb)
+str(model_nb)
+predict.nb <-predict(model_nb,newdata =  df.test.dtm.mod.yn)
+str(predict.nb)
+
+#confusion matrix 
+cm.nb <- table(predict.nb,df.test$category)
+
+#Manual computation for accuracy, recall, precision and fmeasure (Key Metrics)
+cm.nb <- as.matrix( table(predict.nb,df.test$category))
+n.nb <- sum(cm.nb)  # sum of instances
+nc.nb <- nrow(cm.nb)   #number of classes/categories
+diag.nb <- diag(cm.nb)  # number of correctly classified instances per class
+rowsums.nb <- apply(cm.nb, 1, sum)   #number of predictions per class 
+colsums.nb <- apply(cm.nb, 2, sum)   #number of instances per class
+p.nb <- rowsums.nb/n.nb         # distribution of instances over predicted classes
+q.nb <- colsums.nb/n.nb        # distribution of instances over actual classes
+
+#computation for Accuracy
+accuracy.nb <- sum(diag.nb)/n.nb
+
+#computation for precison, recall, and fmeasure per class
+
+precision.nb <- diag.nb/rowsums.nb
+recall.nb <- diag.nb /colsums.nb
+fm.nb <- 2*precision.nb * recall.nb /(precision.nb + recall.nb)
+
+#computation for precison, recall, and fmeasure per class as Macro-averaged Metrics
+macroPrecision.nb <- mean(precision.nb)
+macroRecall.nb <- mean(recall.nb)
+macroFmeasure.nb <- mean(fm.nb)
+
+keyMetrics.nb <- data.frame(macroPrecision.nb,macroRecall.nb,macroFmeasure.nb, accuracy.nb)
+
+
+#prop.table(table(predict.nb,df.test$category))
+
+#presenting in cross  Table for naive bayes tree
+#install.packages("gmodels")
+library(gmodels)
+
+CrossTable(predict.nb,df.test$category, prop.chisq = F, prop.t = F, dnn=c("Predicted","Actual"))
+confusionMatrix(predict.nb,df.test$category, positive = "1")
+
+
+#key metrics, sensitivity = recall, Pos pred value = precision
+#precision.nb <- posPredValue(predict.nb,Del_test, positive =levels(Del_test[1]))
+#recall.nb <- sensitivity(df.test.wilcoxon$predict,df.test.wilcoxon$category, positive = "1")
+#Fmeasure.nb <- (2*precision.nb*recall.nb)/(precision.nb+recall.nb)
+
+#cannot perforn wilcox.test since values are categorical
+
+
+#  DECISION TREE
+
+#install.packages("rpart")
+library(rpart)
+
+#remove sparse terms
+df.dtm2 <- df.dtm
+inspect(df.dtm2)
+df.dtm2.RemSparse <-removeSparseTerms(df.dtm2, 0.995)
+
+#convert to dataframe
+df.dtm2.RemSparse.df <- as.data.frame(as.matrix(df.dtm2.RemSparse))
+colnames(df.dtm2.RemSparse.df) <- make.names(colnames(df.dtm2.RemSparse.df))
+
+#add column category to dataframe and populate it from df column category
+df.dtm2.RemSparse.df$category <- df$category
+
+#partition dataframe to 70/30 (train/test)
+set.seed(1)
+index =  createDataPartition(df.dtm2.RemSparse.df$category, times=1, p=0.7, list = FALSE)
+index[1:10]
+
+
+#DATASET for training and testing
+df.train2 <- df.dtm2.RemSparse.df[index,]
+df.test2 <- df.dtm2.RemSparse.df[-index,]
+
+#check dimensions and proportion of train and test dataframe
+dim(df.train2)
+dim(df.test2)
+
+prop.table(table(df.train2$category))
+prop.table(table(df.test2$category))
+
+
+#create model
+model_tree <- rpart(category~., data=df.train2,method = "class", minbucket=50)
+#prp(model_tree)
+
+#plotting decision tree
+#install.packages("rpart.plot")
+library(rpart.plot)
+
+
+predict.dtree <- predict(model_tree, newdata = df.test2, type = "class")
+
+
+table(predict.dtree,df.test2$category)
+#prop.table(table(predict.dtree,df.test2$category))
+
+
+
+#confusion matrix 
+cm.dt <- table(predict.dtree,df.test2$category)
+
+#Manual computation for accuracy, recall, precision and fmeasure (Key Metrics)
+cm.dt <- as.matrix( table(predict.dtree,df.test2$category))
+n.dt <- sum(cm.dt)  # sum of instances
+nc.dt <- nrow(cm.dt)   #number of classes/categories
+diag.dt <- diag(cm.dt)  # number of correctly classified instances per class
+rowsums.dt <- apply(cm.dt, 1, sum)   #number of predictions per class 
+colsums.dt <- apply(cm.dt, 2, sum)   #number of instances per class
+p.nb <- rowsums.dt/n.dt         # distribution of instances over predicted classes
+q.nb <- colsums.dt/n.dt        # distribution of instances over actual classes
+
+#computation for overall Accuracy
+accuracy.dt <- sum(diag.dt)/n.dt
+
+#computation for precison, recall, and fmeasure per class
+
+precision.dt <- diag.dt/rowsums.dt
+recall.dt <- diag.dt /colsums.dt
+fm.dt <- 2*precision.dt * recall.dt /(precision.dt + recall.dt)
+
+#computation for precison, recall, and fmeasure per class as Macro-averaged Metrics
+macroPrecision.dt <- mean(precision.dt)
+macroRecall.dt <- mean(recall.dt)
+macroFmeasure.dt <- mean(fm.dt)
+
+keyMetrics.dt <- data.frame(macroPrecision.dt,macroRecall.dt,macroFmeasure.dt, accuracy.dt)
+
+
+#presenting in cross  Table for decision tree
+#install.packages("gmodels")
+library(gmodels)
+
+CrossTable(predict.dtree,df.test2$category, prop.chisq = F, prop.t = F, dnn=c("Predicted","Actual"))
+
+confusionMatrix(predict.dtree,df.test2$category, positive = "1")
+
+
+
+#      RANDOM FOREST
+
+#install.packages("randomForest")
+library(randomForest)
+
+
+df.train3 <-df.train2
+df.test3 <-df.test2
+
+#model_rforest <- randomForest(category~.,data = df.train3, ntree=10, nodesize=5)   
+model_rforest <- randomForest(category~.,data = df.train3, ntree=50, nodesize=10)  #might be the best option
+#model_rforest <- randomForest(category~.,data = df.train3, ntree=100, nodesize=10)  
+
+predict.rforest <- predict(model_rforest, newdata = df.test3)
+
+table(predict.rforest,df.test3$category)
+#prop.table(table(predict.rforest,df.test3$category))
+
+
+cm.rf <- table(predict.rforest,df.test3$category)
+
+#Manual computation for accuracy, recall, precision and fmeasure (Key Metrics)
+cm.rf <- as.matrix( table(predict.rforest,df.test3$category))
+n.rf <- sum(cm.rf)  # sum of instances
+nc.rf <- nrow(cm.rf)   #number of classes/categories
+diag.rf <- diag(cm.rf)  # number of correctly classified instances per class
+rowsums.rf <- apply(cm.rf, 1, sum)   #number of predictions per class 
+colsums.rf <- apply(cm.rf, 2, sum)   #number of instances per class
+p.rf <- rowsums.rf/n.rf         # distribution of instances over predicted classes
+q.rf <- colsums.rf/n.rf        # distribution of instances over actual classes
+
+#computation for overall Accuracy
+accuracy.rf <- sum(diag.rf)/n.rf
+
+#computation for precison, recall, and fmeasure per class
+
+precision.rf <- diag.rf/rowsums.rf
+recall.rf <- diag.rf /colsums.rf
+fm.rf <- 2*precision.rf * recall.rf /(precision.rf + recall.rf)
+
+#computation for precison, recall, and fmeasure per class as Macro-averaged Metrics
+macroPrecision.rf <- mean(precision.rf)
+macroRecall.rf <- mean(recall.rf)
+macroFmeasure.rf <- mean(fm.rf)
+
+keyMetrics.rf <- data.frame(macroPrecision.rf,macroRecall.rf,macroFmeasure.rf, accuracy.rf)
+
+
+CrossTable(predict.rforest,df.test3$category, prop.chisq = F, prop.t = F, dnn=c("Predicted","Actual"))
+
+confusionMatrix(predict.rforest,df.test3$category, positive = "1")
+
+
+# Ensemble1 of models (NB,DTree, RandomForest) by majority vote
+
+df.ensemble <- df.test
+df.ensemble$NBpredict <- as.factor(predict.nb)
+df.ensemble$DTreepredict <- as.factor(predict.dtree)
+df.ensemble$RFpredict <- as.factor(predict.rforest)
+
+count_predict <- df.ensemble[,-c(1:2)]
+
+ 
+#category count: business, entertainment, politics ,sport,tech 
+count_business <- count_predict
+count_business$Countbus <- rowSums(count_business=="business")
+count_business<-count_business[,-c(1:3)]
+
+
+count_entertainment <- count_predict
+count_entertainment$CountEnt <- rowSums(count_entertainment=="entertainment")
+count_entertainment <- count_entertainment[,-c(1:3)]
+
+count_politics <- count_predict
+count_politics$CountPol <- rowSums(count_politics=="politics")
+count_politics <- count_politics[,-c(1:3)]
+
+count_sport <- count_predict
+count_sport$CountSports <- rowSums(count_sport=="sport")
+count_sport <- count_sport[,-c(1:3)]
+
+count_tech <- count_predict
+count_tech$CountTech <- rowSums(count_tech=="tech")
+count_tech <- count_tech[,-c(1:3)]
+
+
+#Put all counts together
+ 
+count_max <- data.frame("business"=count_business, "entertainment"=count_entertainment,
+                        "politics"=count_politics, "sport"=count_sport,
+                        "tech"=count_tech)
+#get prediction for ensemble by using highest count as prediction
+count_max$predict <- colnames(count_max)[apply(count_max,1,which.max)]
+
+table(count_max$predict,df.ensemble$category)
+
+#prop.table(table(count_max$predict,df.ensemble$category))
+cm.en <- table(count_max$predict,df.ensemble$category)
+
+#Manual computation for accuracy, recall, precision and fmeasure (Key Metrics)
+cm.en <- as.matrix(table(count_max$predict,df.ensemble$category))
+n.en <- sum(cm.en)  # sum of instances
+nc.en <- nrow(cm.en)   #number of classes/categories
+diag.en <- diag(cm.en)  # number of correctly classified instances per class
+rowsums.en <- apply(cm.en, 1, sum)   #number of predictions per class 
+colsums.en <- apply(cm.en, 2, sum)   #number of instances per class
+p.en <- rowsums.en/n.en         # distribution of instances over predicted classes
+q.en <- colsums.en/n.en        # distribution of instances over actual classes
+
+#computation for overall Accuracy
+accuracy.en <- sum(diag.en)/n.en
+
+#computation for precison, recall, and fmeasure per class
+
+precision.en <- diag.en/rowsums.en
+recall.en <- diag.en /colsums.en
+fm.en <- 2*precision.en * recall.en /(precision.en + recall.en)
+
+#computation for precison, recall, and fmeasure per class as Macro-averaged Metrics
+macroPrecision.en <- mean(precision.en)
+macroRecall.en <- mean(recall.en)
+macroFmeasure.en <- mean(fm.en)
+
+keyMetrics.en <- data.frame(macroPrecision.en,macroRecall.en,macroFmeasure.en, accuracy.en)
+
+
+
+CrossTable(count_max$predict,df.ensemble$category, prop.chisq = F, prop.t = F, dnn=c("Predicted","Actual"))
+
+count_max$predict <- as.factor(count_max$predict)
+
+confusionMatrix(count_max$predict,df.ensemble$category, positive = "1")
+
+
+# Ensemble2 of models (NB, RandomForest) by majority vote
+
+df.ensemble2 <- df.test
+df.ensemble2$NBpredict <- as.factor(predict.nb)
+df.ensemble2$RFpredict <- as.factor(predict.rforest)
+
+count_predict2 <- df.ensemble2[,-c(1:2)]
+
+#category count: business, entertainment, politics ,sport,tech 
+count_business2 <- count_predict2
+count_business2$Countbus <- rowSums(count_business2=="business")
+count_business2<-count_business2[,-c(1:2)]
+
+count_entertainment2 <- count_predict2
+count_entertainment2$CountEnt <- rowSums(count_entertainment2=="entertainment")
+count_entertainment2 <- count_entertainment2[,-c(1:2)]
+
+count_politics2 <- count_predict2
+count_politics2$CountPol <- rowSums(count_politics2=="politics")
+count_politics2 <- count_politics2[,-c(1:2)]
+
+count_sport2 <- count_predict2
+count_sport2$CountSports <- rowSums(count_sport2=="sport")
+count_sport2 <- count_sport2[,-c(1:2)]
+
+count_tech2 <- count_predict2
+count_tech2$CountTech <- rowSums(count_tech2=="tech")
+count_tech2 <- count_tech2[,-c(1:2)]
+
+#Put all counts together
+
+count_max2 <- data.frame("business"=count_business2, "entertainment"=count_entertainment2,
+                        "politics"=count_politics2, "sport"=count_sport2,
+                        "tech"=count_tech2)
+
+#get prediction for ensemble by using highest count as prediction
+count_max2$predict <- colnames(count_max2)[apply(count_max2,1,which.max)]
+
+table(count_max2$predict,df.ensemble2$category)
+
+#prop.table(table(count_max2$predict,df.ensemble2$category))
+
+
+
+cm.en2 <- table(count_max2$predict, df.ensemble2$category)
+
+#Manual computation for accuracy, recall, precision and fmeasure (Key Metrics)
+cm.en2 <- as.matrix(table(count_max2$predict, df.ensemble2$category))
+n.en2 <- sum(cm.en2)  # sum of instances
+nc.en2 <- nrow(cm.en2)   #number of classes/categories
+diag.en2 <- diag(cm.en2)  # number of correctly classified instances per class
+rowsums.en2 <- apply(cm.en2, 1, sum)   #number of predictions per class 
+colsums.en2 <- apply(cm.en2, 2, sum)   #number of instances per class
+p.en <- rowsums.en2/n.en2         # distribution of instances over predicted classes
+q.en <- colsums.en2/n.en2        # distribution of instances over actual classes
+
+#computation for overall Accuracy
+accuracy.en2 <- sum(diag.en2)/n.en2
+
+#computation for precison, recall, and fmeasure per class
+
+precision.en2 <- diag.en2/rowsums.en2
+recall.en2 <- diag.en2 /colsums.en2
+fm.en2 <- 2*precision.en2 * recall.en2 /(precision.en2 + recall.en2)
+
+#computation for precison, recall, and fmeasure per class as Macro-averaged Metrics
+macroPrecision.en2 <- mean(precision.en2)
+macroRecall.en2 <- mean(recall.en2)
+macroFmeasure.en2 <- mean(fm.en2)
+
+keyMetrics.en2 <- data.frame(macroPrecision.en2,macroRecall.en2,macroFmeasure.en2, accuracy.en2)
+
+
+CrossTable(count_max2$predict,df.ensemble2$category, prop.chisq = F, prop.t = F, dnn=c("Predicted","Actual"))
+
+count_max2$predict <- as.factor(count_max2$predict)
+
+confusionMatrix(count_max2$predict,df.ensemble2$category, positive = "1")
+
+
+
+# ~~~~~~~~~~~      KEY METRICS FOR EACH CLASSIFIER   ~~~~~~~~~~~~
+
+#Naive bayes
+keyMetrics.nb
+
+#Decision Tree
+keyMetrics.dt
+
+#Random Forest
+keyMetrics.rf
+
+#Ensenble by majority vote (NaiveBayes, Decision Tree, Randon Forest)
+keyMetrics.en
+
+#Ensenble by majority vote (NaiveBayes, RandoM Forest)
+keyMetrics.en2
